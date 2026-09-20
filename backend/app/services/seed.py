@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.models import Building, CallTicket, DispatchLog, ElevatorCar
+from app.models.models import Building, CallTicket, DispatchLog, ElevatorCar, RestrictedFloor
 
 
 def seed_if_empty(db: Session) -> None:
@@ -18,12 +18,17 @@ def seed_if_empty(db: Session) -> None:
     ]
     db.add_all(cars)
     db.flush()
+    # 13 层为禁停层：不登记呼梯、不派工停靠。
+    db.add(RestrictedFloor(building_id=b.id, floor=13))
     c1 = CallTicket(building_id=b.id, floor=5, direction="up", passengers=2, status="waiting")
     c2 = CallTicket(building_id=b.id, floor=14, direction="down", passengers=1, status="waiting")
     c3 = CallTicket(
         building_id=b.id, floor=9, direction="up", passengers=3, status="assigned", assigned_car_id=cars[0].id, score="72.0"
     )
-    db.add_all([c1, c2, c3])
+    # 一次对着禁停层（13 层）的呼梯尝试，已被拒绝并留痕。
+    c4 = CallTicket(building_id=b.id, floor=13, direction="up", passengers=1, status="rejected")
+    db.add_all([c1, c2, c3, c4])
     db.flush()
     db.add(DispatchLog(call_id=c3.id, car_id=cars[0].id, detail="同向优先派予 A1，评分 72.0"))
+    db.add(DispatchLog(call_id=c4.id, car_id=None, detail="13 层为禁停层，拒绝派工"))
     db.commit()

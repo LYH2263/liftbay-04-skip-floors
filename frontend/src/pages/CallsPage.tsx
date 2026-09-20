@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
-type B = { id: number; name: string; floors: number };
+type RestrictedFloor = { id: number; floor: number };
+type B = { id: number; name: string; floors: number; restricted_floors: RestrictedFloor[] };
 type Call = { id: number; floor: number; direction: string; passengers: number; status: string; assigned_car_id: number | null; score: string };
 export default function CallsPage() {
   const [buildings, setBuildings] = useState<B[]>([]);
@@ -15,6 +16,26 @@ export default function CallsPage() {
     api<B[]>("/buildings").then(b => { setBuildings(b); if (b[0]) setBid(b[0].id); });
     reload();
   }, []);
+  const building = useMemo(() => buildings.find(b => b.id === bid), [buildings, bid]);
+  const banned = useMemo(
+    () => new Set((building?.restricted_floors ?? []).map(r => r.floor)),
+    [building],
+  );
+  const levels = useMemo(
+    () => (building ? Array.from({ length: building.floors }, (_, i) => i + 1) : []),
+    [building],
+  );
+  function pickBuilding(id: number) {
+    setBid(id);
+    setErr("");
+    const target = buildings.find(b => b.id === id);
+    if (!target) return;
+    const blocked = new Set(target.restricted_floors.map(r => r.floor));
+    if (blocked.has(floor)) {
+      const firstOpen = Array.from({ length: target.floors }, (_, i) => i + 1).find(f => !blocked.has(f));
+      setFloor(firstOpen ?? 1);
+    }
+  }
   async function create() {
     setErr("");
     try {
@@ -25,8 +46,10 @@ export default function CallsPage() {
   return (<>
     <h2>呼梯</h2>
     <div className="toolbar">
-      <select value={bid} onChange={e => setBid(Number(e.target.value))}>{buildings.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
-      <input type="number" value={floor} onChange={e => setFloor(Number(e.target.value))} style={{ width: 72 }} />
+      <select value={bid} onChange={e => pickBuilding(Number(e.target.value))}>{buildings.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
+      <select value={floor} onChange={e => setFloor(Number(e.target.value))}>
+        {levels.map(f => <option key={f} value={f} disabled={banned.has(f)}>{f} 层{banned.has(f) ? "（禁停）" : ""}</option>)}
+      </select>
       <select value={dir} onChange={e => setDir(e.target.value)}><option value="up">上行</option><option value="down">下行</option></select>
       <input type="number" value={pax} min={1} onChange={e => setPax(Number(e.target.value))} style={{ width: 64 }} />
       <button onClick={create}>登记呼梯</button>

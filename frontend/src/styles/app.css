@@ -253,3 +253,28 @@ button {
 .floor-slot.has-car { background: var(--car); color: white; border-color: #5eb3d8; font-weight: 700; }
 .floor-slot.has-call { box-shadow: inset 0 0 0 2px var(--call); }
 .congestion-bar { height: 14px; background: var(--call); border-radius: 4px; }
+
+/* —— 禁停层 —— */
+.restricted-list { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+.restricted-add { display: inline-flex; gap: .35rem; align-items: center; }
+.muted { color: var(--shaft-muted); font-size: .85rem; }
+.chip {
+  display: inline-flex; align-items: center; gap: .3rem;
+  border-radius: 999px; padding: .15rem .55rem; font-size: .8rem;
+  font-family: "IBM Plex Mono", monospace;
+}
+.chip-restricted {
+  background: rgba(214, 64, 69, .18); border: 1px solid rgba(214, 64, 69, .6); color: #ff9b9e;
+}
+.chip-x {
+  background: transparent; color: #ff9b9e; border: none; cursor: pointer;
+  font-size: .95rem; line-height: 1; padding: 0 .1rem; font-weight: 700;
+}
+.chip-x:hover { color: #ffd0d1; }
+.tag {
+  display: inline-block; border-radius: 4px; padding: .1rem .5rem;
+  font-size: .78rem; font-weight: 700; white-space: nowrap;
+}
+.tag-restricted { background: rgba(214, 64, 69, .2); color: #ff9b9e; border: 1px solid rgba(214, 64, 69, .55); }
+.tag-full { background: rgba(240, 162, 2, .18); color: var(--shaft-amber); border: 1px solid rgba(240, 162, 2, .5); }
+.tag-ok { background: rgba(47, 224, 200, .14); color: var(--shaft-teal); border: 1px solid rgba(47, 224, 200, .45); }

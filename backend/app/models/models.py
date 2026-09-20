@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -12,6 +12,21 @@ class Building(Base):
     name: Mapped[str] = mapped_column(String(80), unique=True)
     floors: Mapped[int] = mapped_column(Integer)
     cars: Mapped[list["ElevatorCar"]] = relationship(back_populates="building")
+    restricted_floors: Mapped[list["RestrictedFloor"]] = relationship(
+        back_populates="building", cascade="all, delete-orphan"
+    )
+
+
+class RestrictedFloor(Base):
+    """禁停层：不可登记呼梯，派工不得把轿厢停在该层。"""
+
+    __tablename__ = "restricted_floors"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    building_id: Mapped[int] = mapped_column(ForeignKey("buildings.id"))
+    floor: Mapped[int] = mapped_column(Integer)
+    building: Mapped[Building] = relationship(back_populates="restricted_floors")
+
+    __table_args__ = (UniqueConstraint("building_id", "floor", name="uq_restricted_building_floor"),)
 
 
 class ElevatorCar(Base):

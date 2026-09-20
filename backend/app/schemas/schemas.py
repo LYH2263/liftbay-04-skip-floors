@@ -2,10 +2,22 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
+class RestrictedFloorOut(BaseModel):
+    id: int
+    building_id: int
+    floor: int
+    model_config = {"from_attributes": True}
+
+
+class RestrictedFloorCreate(BaseModel):
+    floor: int = Field(ge=1)
+
+
 class BuildingOut(BaseModel):
     id: int
     name: str
     floors: int
+    restricted_floors: list[RestrictedFloorOut] = []
     model_config = {"from_attributes": True}
 
 
