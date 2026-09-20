@@ -2,11 +2,23 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
+class BlockedFloorOut(BaseModel):
+    id: int
+    building_id: int
+    floor: int
+    model_config = {"from_attributes": True}
+
+
 class BuildingOut(BaseModel):
     id: int
     name: str
     floors: int
+    blocked_floors: list[BlockedFloorOut] = []
     model_config = {"from_attributes": True}
+
+
+class BlockedFloorCreate(BaseModel):
+    floor: int = Field(ge=1)
 
 
 class CarOut(BaseModel):

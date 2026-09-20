@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -12,6 +12,20 @@ class Building(Base):
     name: Mapped[str] = mapped_column(String(80), unique=True)
     floors: Mapped[int] = mapped_column(Integer)
     cars: Mapped[list["ElevatorCar"]] = relationship(back_populates="building")
+    blocked_floors: Mapped[list["BlockedFloor"]] = relationship(
+        back_populates="building", cascade="all, delete-orphan"
+    )
+
+
+class BlockedFloor(Base):
+    """A floor where cars may not stop and calls cannot be registered."""
+
+    __tablename__ = "blocked_floors"
+    __table_args__ = (UniqueConstraint("building_id", "floor", name="uq_blocked_building_floor"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    building_id: Mapped[int] = mapped_column(ForeignKey("buildings.id"))
+    floor: Mapped[int] = mapped_column(Integer)
+    building: Mapped[Building] = relationship(back_populates="blocked_floors")
 
 
 class ElevatorCar(Base):
